@@ -111,10 +111,13 @@ contract('Partnership', function(accounts) {
     var callData = partnership.contract.distributeEvenly.getData(amount * 2);
     var txn1 = await partnership.proposeTransaction(partnership.address, 0, callData, "distribute evenly", {from:partner1});
     assert(txn1.logs[0].event === 'TransactionProposed');
-    var txnId1 = txn1.logs[0].args._id;
     // approve dissolution proposal
+    // BUG: This bombs because txnId1 isn't yet declared.
+    //      It shows up as "Error: Invalid number of arguments to Solidity function"
+    //      Shouldn't it notice that it doesn't have the variable defined yet?
     var confirmation = await partnership.confirmTransaction(txnId1,{from:partner2});
     assert(confirmation.logs[0].event === 'TransactionPassed');
+    var txnId1 = txn1.logs[0].args._id;
     // partner1 executes transaction
     var execution = await partnership.executeTransaction(txnId1,{from:partner1});
     assert(execution.logs[0].event === 'TransactionSent');
